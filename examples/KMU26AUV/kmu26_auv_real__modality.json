@@ -1,0 +1,55 @@
+{
+    "state": {
+        "prev_command": {
+            "start": 0,
+            "end": 4
+        },
+        "dvl_velocity": {
+            "start": 4,
+            "end": 7
+        },
+        "angular_velocity": {
+            "start": 7,
+            "end": 10
+        },
+        "linear_acceleration": {
+            "start": 10,
+            "end": 13
+        },
+        "attitude": {
+            "start": 13,
+            "end": 17
+        },
+        "depth": {
+            "start": 17,
+            "end": 18
+        },
+        "altitude": {
+            "start": 18,
+            "end": 19
+        },
+        "validity": {
+            "start": 19,
+            "end": 23
+        }
+    },
+    "action": {
+        "motion": {
+            "start": 0,
+            "end": 4
+        }
+    },
+    "video": {
+        "ego": {
+            "original_key": "observation.images.ego"
+        },
+        "buoy_release": {
+            "original_key": "observation.images.buoy_release"
+        }
+    },
+    "annotation": {
+        "human.action.task_description": {
+            "original_key": "task_index"
+        }
+    }
+}

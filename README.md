@@ -7,6 +7,16 @@ A fine-tuning and deployment framework for the [NVIDIA GR00T N1.5](https://huggi
 
 > **Note**: This project is forked from [NVIDIA Isaac-GR00T](https://github.com/NVIDIA/Isaac-GR00T) and customized for U0 robot applications.
 
+## KMU26 physical-robot configuration
+
+The built-in `kmu26_auv_real` data config is the starting point for fine-tuning U0 on KMU26
+physical-robot demonstrations. It uses the forward and buoy-release cameras, a 23-dimensional
+proprioceptive state, and 16-step normalized `[surge, sway, heave, yaw]` command chunks. ArduSub,
+not the policy, performs stabilization and per-thruster mixing.
+
+See [`examples/KMU26AUV/README.md`](examples/KMU26AUV/README.md) for the exact dataset contract,
+coordinate conventions, training command, and release-actuator boundary.
+
 ## Features
 
 - **Fine-Tuning**: LoRA and full fine-tuning support for GR00T N1.5 with multi-GPU training
@@ -26,7 +36,8 @@ A fine-tuning and deployment framework for the [NVIDIA GR00T N1.5](https://huggi
 ├── scripts/                # Training, evaluation, and inference scripts
 ├── deployment_scripts/     # TensorRT deployment tools (from upstream, experimental)
 ├── examples/               # Robot-specific modality configs
-│   └── U0bot/              # U0 robot modality configurations
+│   ├── U0bot/              # Original simulated U0 configuration
+│   └── KMU26AUV/           # KMU26 physical-robot configuration
 ├── demo_data/              # Example dataset for quick start
 └── tests/                  # Unit tests
 ```

@@ -142,6 +142,41 @@ def _example_http_client_call(obs: dict, host: str, port: int, api_token: str):
         return {}
 
 
+def _build_example_observation(data_config: str) -> dict:
+    if data_config == "kmu26_auv_real":
+        return {
+            "video.ego": np.zeros((1, 240, 320, 3), dtype=np.uint8),
+            "video.buoy_release": np.zeros((1, 240, 320, 3), dtype=np.uint8),
+            "state.prev_command": np.zeros((1, 4), dtype=np.float32),
+            "state.dvl_velocity": np.zeros((1, 3), dtype=np.float32),
+            "state.angular_velocity": np.zeros((1, 3), dtype=np.float32),
+            "state.linear_acceleration": np.zeros((1, 3), dtype=np.float32),
+            "state.attitude": np.array([[1.0, 0.0, 0.0, 0.0]], dtype=np.float32),
+            "state.depth": np.zeros((1, 1), dtype=np.float32),
+            "state.altitude": np.zeros((1, 1), dtype=np.float32),
+            # ego camera, release camera, DVL velocity, DVL altitude
+            "state.validity": np.ones((1, 4), dtype=np.float32),
+            "annotation.human.action.task_description": ["Approach the red buoy."],
+        }
+
+    return {
+        "video.ego": np.random.randint(0, 256, (1, 240, 320, 3), dtype=np.uint8),
+        "video.wrist": np.random.randint(0, 256, (1, 240, 320, 3), dtype=np.uint8),
+        "state.joint_pos": np.random.rand(1, 5),
+        "state.pwm": np.random.rand(1, 8),
+        "state.joint_v": np.random.rand(1, 5),
+        "state.dvl_v": np.random.rand(1, 3),
+        "state.imu_av": np.random.rand(1, 3),
+        "state.imu_la": np.random.rand(1, 3),
+        "state.pressure": np.random.rand(1, 1),
+        "state.dvl_h": np.random.rand(1, 1),
+        "annotation.human.action.task_description": ["Pick up the red cylinder."],
+        # U0's target pose is supervised during training. The public transform currently
+        # expects a placeholder in the example inference request as well.
+        "target_pos.target_pos": np.zeros((1, 6), dtype=np.float32),
+    }
+
+
 def main(args: ArgsConfig):
     if args.server:
         # Create a policy
@@ -186,20 +221,7 @@ def main(args: ArgsConfig):
         # This is useful for testing the server and client connection
 
         # Making prediction...
-        obs = {
-        "video.ego": np.random.randint(0, 256, (1, 240, 320, 3), dtype=np.uint8),
-        "video.wrist": np.random.randint(0, 256, (1, 240, 320, 3), dtype=np.uint8),
-        "state.joint_pos": np.random.rand(1, 5),
-        "state.pwm": np.random.rand(1, 8),
-        "state.joint_v": np.random.rand(1, 5),
-        "state.dvl_v": np.random.rand(1, 3),
-        "state.imu_av": np.random.rand(1, 3),
-        "state.imu_la": np.random.rand(1, 3),
-        "state.pressure": np.random.rand(1, 1),
-        "state.dvl_h": np.random.rand(1, 1),
-        "annotation.human.action.task_description": ["Pick up the red cylinder."],
-        "target_pos.target_pos": np.random.rand(1, 6),
-            }
+        obs = _build_example_observation(args.data_config)
 
         if args.http_server:
             action = _example_http_client_call(obs, args.host, args.port, args.api_token)
