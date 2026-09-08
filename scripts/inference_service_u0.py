@@ -42,7 +42,6 @@ You can use bore to forward the port to your client: `159.223.171.199` is bore.p
 
 import time
 from dataclasses import dataclass
-
 from typing import Literal
 
 import numpy as np
@@ -179,6 +178,10 @@ def _build_example_observation(data_config: str) -> dict:
 
 def main(args: ArgsConfig):
     if args.server:
+        if args.data_config == "kmu26_auv_real":
+            from gr00t.deployment.kmu26_contract import validate_checkpoint
+
+            validate_checkpoint(args.model_path, args.embodiment_tag)
         # Create a policy
         # The `Gr00tPolicy` class is being used to create a policy object that encapsulates
         # the model path, transform name, embodiment tag, and denoising steps for the robot

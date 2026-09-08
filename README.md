@@ -15,7 +15,8 @@ proprioceptive state, and 16-step normalized `[surge, sway, heave, yaw]` command
 not the policy, performs stabilization and per-thruster mixing.
 
 See [`examples/KMU26AUV/README.md`](examples/KMU26AUV/README.md) for the exact dataset contract,
-coordinate conventions, training command, and release-actuator boundary.
+coordinate conventions, training command, ROS execution adapter, RTX 5080 environment,
+and release-actuator boundary.
 
 ## Features
 
