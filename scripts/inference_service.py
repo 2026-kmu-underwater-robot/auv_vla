@@ -140,6 +140,9 @@ def _example_http_client_call(obs: dict, host: str, port: int, api_token: str):
 
 def main(args: ArgsConfig):
     if args.server:
+        from gr00t.deployment.kmu26_training import validate_real_checkpoint
+
+        validate_real_checkpoint(args.model_path, args.data_config)
         # Create a policy
         # The `Gr00tPolicy` class is being used to create a policy object that encapsulates
         # the model path, transform name, embodiment tag, and denoising steps for the robot

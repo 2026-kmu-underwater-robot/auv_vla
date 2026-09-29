@@ -142,7 +142,7 @@ def _example_http_client_call(obs: dict, host: str, port: int, api_token: str):
 
 
 def _build_example_observation(data_config: str) -> dict:
-    if data_config == "kmu26_auv_real":
+    if data_config in ("kmu26_auv_real", "kmu26_auv_real_v2"):
         return {
             "video.ego": np.zeros((1, 240, 320, 3), dtype=np.uint8),
             "video.buoy_release": np.zeros((1, 240, 320, 3), dtype=np.uint8),
@@ -178,7 +178,10 @@ def _build_example_observation(data_config: str) -> dict:
 
 def main(args: ArgsConfig):
     if args.server:
-        if args.data_config == "kmu26_auv_real":
+        from gr00t.deployment.kmu26_training import validate_real_checkpoint
+
+        validate_real_checkpoint(args.model_path, args.data_config)
+        if args.data_config in ("kmu26_auv_real", "kmu26_auv_real_v2"):
             from gr00t.deployment.kmu26_contract import validate_checkpoint
 
             validate_checkpoint(args.model_path, args.embodiment_tag)

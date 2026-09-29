@@ -371,3 +371,9 @@ This project is built on top of [NVIDIA Isaac-GR00T](https://github.com/NVIDIA/I
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
+
+## KMU26 real-vehicle data fixes
+
+See [the real-training guide](docs/KMU26_REAL_TRAINING.md) for the opt-in
+`kmu26_auv_real_v2` profile, complete action windows, checkpoint compatibility,
+and validation. Simulator-only integration is maintained separately on `uuvsim`.

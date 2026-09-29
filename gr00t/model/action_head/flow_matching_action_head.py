@@ -101,7 +101,7 @@ class MultiEmbodimentActionEncoder(nn.Module):
         # 5) Finally W3 => (B, T, w)
         x = self.W3(x, cat_ids)
         return x
-    
+
 class MultiScaleMaskAwareConv(nn.Module):
     def __init__(self, input_dim=2048, output_dim=6):
         super().__init__()
@@ -192,7 +192,7 @@ class MultiScaleMaskAwareConv(nn.Module):
         output = self.mlp(x)  # Shape becomes [batch_size, output_dim]
         
         return output
-    
+
 class MaskAwareAttentionPooling(nn.Module):
     def __init__(self, input_dim=2048, output_dim=6):
         super().__init__()
@@ -337,7 +337,6 @@ class Conv1DAttentionProcessor(nn.Module):
         output = self.mlp(pooled)  # Shape becomes [2, output_dim]
         
         return output
-
 
 
 class MaskAwareConv1DProcessor(nn.Module):
@@ -561,13 +560,11 @@ class FlowmatchingActionHead(nn.Module):
         )
         self.future_tokens = nn.Embedding(config.num_target_vision_tokens, self.input_embedding_dim)
         nn.init.normal_(self.future_tokens.weight, mean=0.0, std=0.02)
-        
-        
+
         self.target_model = Conv1DAttentionProcessor(
             input_dim=config.backbone_embedding_dim,
             output_dim=getattr(config, "max_target_pos_dim", 6),
         )
-        
 
         self.vlln = (
             nn.LayerNorm(config.backbone_embedding_dim) if config.use_vlln else nn.Identity()
@@ -577,16 +574,20 @@ class FlowmatchingActionHead(nn.Module):
             if config.use_vlln
             else nn.Identity()
         )
-        
-        
+
         # Conv1DAttentionProcessor(2048,self.target_pos_dim)
-        # 
-        
+        #
+
         if config.add_pos_embed:
             self.position_embedding = nn.Embedding(config.max_seq_len, self.input_embedding_dim)
             nn.init.normal_(self.position_embedding.weight, mean=0.0, std=0.02)
 
-        self.beta_dist = Beta(config.noise_beta_alpha, config.noise_beta_beta)
+        # HF may construct the model with a bf16 default dtype. Dirichlet
+        # sampling inside Beta needs float32/float64; sample_time casts afterwards.
+        self.beta_dist = Beta(
+            torch.tensor(config.noise_beta_alpha, dtype=torch.float32),
+            torch.tensor(config.noise_beta_beta, dtype=torch.float32),
+        )
         self.num_timestep_buckets = config.num_timestep_buckets
         self.config = config
         self.set_trainable_parameters(config.tune_projector, config.tune_diffusion_model)
@@ -713,12 +714,12 @@ class FlowmatchingActionHead(nn.Module):
         )
         pred = self.action_decoder(model_output, embodiment_id)
         pred_actions = pred[:, -actions.shape[1] :]
-        
+
         # Slice out only the action portion of pred and target.
         action_mask = action_input.action_mask
         loss_action = F.mse_loss(pred_actions, velocity, reduction="none") * action_mask
         loss_action = loss_action.sum() / action_mask.sum()
-        
+
         # Target loss (conditional on target_loss_weight > 0)
         target_loss_weight = getattr(self.config, 'target_loss_weight', 1.0)
         if target_loss_weight > 0:
@@ -734,7 +735,7 @@ class FlowmatchingActionHead(nn.Module):
             loss = loss_action
             print('loss_action', loss_action)
             print('target_loss disabled (target_loss_weight=0)')
-        
+
         output_dict = {
             "loss": loss
         }
@@ -760,7 +761,7 @@ class FlowmatchingActionHead(nn.Module):
             dtype=vl_embs.dtype,
             device=device,
         )
-        
+
         # Target prediction (conditional on target_loss_weight > 0)
         target_loss_weight = getattr(self.config, 'target_loss_weight', 1.0)
         if target_loss_weight > 0:
