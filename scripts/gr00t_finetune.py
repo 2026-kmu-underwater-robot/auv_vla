@@ -14,8 +14,8 @@
 # limitations under the License.
 
 import os
-
 import warnings
+
 warnings.filterwarnings(
     "ignore",
     message="The video decoding and encoding capabilities of torchvision are deprecated"
@@ -26,8 +26,9 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Literal
-import torch.nn as nn
+
 import torch
+import torch.nn as nn
 import tyro
 from transformers import TrainingArguments
 
@@ -38,6 +39,7 @@ from gr00t.experiment.runner import TrainRunner
 from gr00t.model.gr00t_n1 import GR00T_N1_5
 from gr00t.model.transforms import EMBODIMENT_TAG_MAPPING
 from gr00t.utils.peft import get_lora_model
+
 
 def initialize_weights(module):
     """
@@ -206,9 +208,24 @@ def main(config: ArgsConfig):
     modality_configs = data_config_cls.modality_config()
     transforms = data_config_cls.transform()
 
+    dataset_class = LeRobotSingleDataset
+    real_settings = None
+    if config.data_config == "kmu26_auv_real_v2":
+        from gr00t.data.kmu26_dataset import Kmu26RealTrainingDataset
+        from gr00t.deployment.kmu26_training import read_real_training_settings
+
+        if len(config.dataset_path) != 1:
+            raise ValueError(
+                "KMU26 v2 requires one preselected dataset; export compatible sessions together"
+            )
+        if config.target_loss_weight != 0.0:
+            raise ValueError("KMU26 v2 has no CAP target labels; set --target-loss-weight 0")
+        real_settings = read_real_training_settings(Path(config.dataset_path[0]))
+        dataset_class = Kmu26RealTrainingDataset
+
     # 1.2 data loader: we will use either single dataset or mixture dataset
     if len(config.dataset_path) == 1:
-        train_dataset = LeRobotSingleDataset(
+        train_dataset = dataset_class(
             dataset_path=config.dataset_path[0],
             modality_configs=modality_configs,
             transforms=transforms,
@@ -293,9 +310,11 @@ def main(config: ArgsConfig):
             tune_projector=config.tune_projector, tune_diffusion_model=config.tune_diffusion_model
         )
 
-    
     # Set target_loss_weight in action head config
     model.action_head.config.target_loss_weight = config.target_loss_weight
+    model.config.action_head_cfg["target_loss_weight"] = config.target_loss_weight
+    if real_settings is not None:
+        model.config.kmu26_training = real_settings
     print(f"Target loss weight: {config.target_loss_weight}")
     if config.target_loss_weight > 0:
         for module in model.action_head.target_model.modules():
@@ -305,12 +324,11 @@ def main(config: ArgsConfig):
         print("Target loss is DISABLED (target_loss_weight=0), skipping target_model initialization.")
         # Freeze target_model parameters to save compute
         model.action_head.target_model.requires_grad_(False)
-    
+
     # Set the model's compute_dtype to bfloat16
     model.compute_dtype = "bfloat16"
     model.config.compute_dtype = "bfloat16"
-    
-    
+
     if config.lora_rank > 0:
         model = get_lora_model(
             model,

@@ -952,6 +952,23 @@ class Kmu26AuvRealDataConfig(BaseDataConfig):
         return ComposedModalityTransform(transforms=transforms)
 
 
+class Kmu26AuvRealV2DataConfig(Kmu26AuvRealDataConfig):
+    """Preserve the 23 physical state values for newly trained KMU26 models.
+
+    Use the legacy config for existing 46-value sin/cos checkpoints. The v2
+    configuration must be selected consistently for training and inference.
+    """
+
+    def transform(self) -> ModalityTransform:
+        result = super().transform()
+        result.transforms = [
+            transform
+            for transform in result.transforms
+            if not isinstance(transform, StateActionSinCosTransform)
+        ]
+        return result
+
+
 ###########################################################################################
 
 DATA_CONFIG_MAP = {
@@ -969,4 +986,5 @@ DATA_CONFIG_MAP = {
     "agibot_genie1": AgibotGenie1DataConfig(),
     "u0_bot": U0botDataConfig(),
     "kmu26_auv_real": Kmu26AuvRealDataConfig(),
+    "kmu26_auv_real_v2": Kmu26AuvRealV2DataConfig(),
 }

@@ -67,3 +67,15 @@ def test_u0_metadata_cannot_be_used_as_kmu26_policy(tmp_path):
     }
     path.write_text(json.dumps({"new_embodiment": metadata}))
     validate_checkpoint(str(tmp_path))
+
+
+@pytest.mark.parametrize("envelope", [list, tuple])
+def test_cap_free_u0_response_is_supported(envelope):
+    response = envelope([{"action.motion": np.zeros((16, 4))}, None])
+    assert motion_chunk(response).shape == (16, 4)
+
+
+@pytest.mark.parametrize("response", [None, [], [{}, [1, 2, 3]], [None, None]])
+def test_invalid_u0_response_is_rejected(response):
+    with pytest.raises(ValueError):
+        motion_chunk(response)
